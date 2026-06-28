@@ -72,20 +72,19 @@
             pointer-events: none; 
         }
 
-        /* 🛠️ [긴급 수정] 투명창 경계선 안쪽으로 완벽하게 끼워 맞춤 */
-        /* 높이를 줄이고 아래쪽 깎인 은색 모서리에 맞게 border-radius와 오차 조절 */
+        /* 🛠️ [정밀 수정] 회색 박스가 커지지 않도록 투명창 규격에 칼같이 매칭 */
         .photo-area {
             position: absolute;
             top: 318px;       /* 상단 은색 선 위치 일치 */
             left: 194px;      /* 좌측 은색 선 위치 일치 */
             width: 432px;     /* 안쪽 가로 폭 */
-            height: 532px;    /* ⭐️ 기존 555px에서 아래쪽 삐져나오던 길이를 532px로 정밀 축소 */
+            height: 524px;    /* ⭐️ 기존 532px에서 아래쪽 회색 박스를 더 깎아 524px로 최종 정밀 축소 */
             background-color: #000000;
             overflow: hidden;
             z-index: 1;
             cursor: move;
             user-select: none;
-            border-radius: 24px; /* ⭐️ 아래쪽 각진 프레임 라인에 맞춰 모서리 커팅 처리 */
+            border-radius: 24px; /* ⭐️ 아래쪽 깎인 프레임 라인에 맞춰 모서리 커팅 처리 */
         }
 
         .photo-area img {
@@ -266,4 +265,101 @@
                     if(imgElement) imgElement.remove();
                     
                     imgElement = document.createElement('img');
-                    imgElement.src
+                    imgElement.src = event.target.result;
+                    container.appendChild(imgElement);
+                    
+                    currentX = 0; currentY = 0; imgScale = 1;
+                    scaleInput.value = 1;
+                    scaleInput.disabled = false;
+                    updateTransform();
+                    
+                    initDragEvents();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        scaleInput.addEventListener('input', function(e) {
+            imgScale = e.target.value;
+            updateTransform();
+        });
+
+        function updateTransform() {
+            if (imgElement) {
+                imgElement.style.transform = `translate(${currentX}px, ${currentY}px) scale(${imgScale})`;
+            }
+        }
+
+        function initDragEvents() {
+            idCard.onmousedown = dragStart;
+            idCard.ontouchstart = dragStart;
+        }
+
+        function dragStart(e) {
+            if (!imgElement) return;
+            isDragging = true;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX / 0.45 - currentX;
+            startY = clientY / 0.45 - currentY;
+            
+            document.onmousemove = dragMove;
+            document.ontouchmove = dragMove;
+            document.onmouseup = dragEnd;
+            document.ontouchend = dragEnd;
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            currentX = (clientX / 0.45) - startX;
+            currentY = (clientY / 0.45) - startY;
+            
+            updateTransform();
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            document.onmousemove = null;
+            document.ontouchmove = null;
+            document.onmouseup = null;
+            document.ontouchend = null;
+        }
+
+        document.getElementById('name-input').addEventListener('input', function(e) {
+            document.getElementById('card-name').innerText = e.target.value;
+        });
+        document.getElementById('rank-input').addEventListener('input', function(e) {
+            document.getElementById('card-rank').innerText = e.target.value;
+        });
+        document.getElementById('sub-input').addEventListener('input', function(e) {
+            document.getElementById('card-sub').innerText = e.target.value;
+        });
+
+        function downloadCard() {
+            const card = document.getElementById('id-card');
+            card.style.transform = "none";
+            
+            html2canvas(card, {
+                useCORS: true,
+                width: 820,
+                height: 1390,
+                scale: 1
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'obsidian_id_card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                card.style.transform = "scale(0.45)";
+            });
+        }
+    </script>
+</body>
+</html>
