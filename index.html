@@ -72,6 +72,11 @@
             pointer-events: none; 
         }
 
+        /* TYPE 2 전용 사원증 이미지 변경 규칙 */
+        #id-card.type-2 .card-bg {
+            background-image: url('bg2.png') !important;
+        }
+
         /* 2. 사진이 맴도는 구역 (가장 아래 레이어) */
         .photo-area {
             position: absolute;
@@ -108,7 +113,7 @@
             gap: 10px;
             text-align: center;
             z-index: 4;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .info-name {
@@ -132,12 +137,12 @@
             letter-spacing: 1px;
         }
 
-        /* 🛠️ TYPE 2 전용 스타일: 직급 숨김 및 텍스트 밸런스 조정 */
+        /* TYPE 2 적용시 레이아웃 변형 규칙 */
         #id-card.type-2 .info-rank {
             display: none !important;
         }
         #id-card.type-2 .info-area {
-            top: 955px; /* 직급이 빠진 만큼 이름과 상세 정보 위치 세부 조정 */
+            top: 955px; 
             gap: 15px;
         }
 
@@ -158,7 +163,6 @@
             color: #888;
             font-weight: bold;
         }
-        /* 카드 타입 선택 셀렉트 박스 */
         select, input {
             padding: 12px;
             font-size: 15px;
@@ -217,7 +221,7 @@
                     <span id="placeholder-text" style="color:#444; font-size:18px; letter-spacing:1px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">INSERT PORTRAIT</span>
                 </div>
                 
-                <div class="card-bg" id="card-frame"></div>
+                <div class="card-bg"></div>
 
                 <div class="info-area">
                     <div class="info-name" id="card-name">정 우 진</div>
@@ -270,7 +274,6 @@
         const scaleInput = document.getElementById('scale-input');
         const container = document.getElementById('photo-container');
         const idCard = document.getElementById('id-card');
-        const cardFrame = document.getElementById('card-frame');
         const cardTypeSelect = document.getElementById('card-type-select');
         const inputGroupRank = document.getElementById('input-group-rank');
         const placeholder = document.getElementById('placeholder-text');
@@ -281,20 +284,16 @@
         let currentX = 0, currentY = 0;
         let imgScale = 1;
 
-        // 🛠️ 카드 디자인 타입 체인지 이벤트 연동
+        // 🛠️ 대소문자 및 클래스 주입 방식 완벽 수정
         cardTypeSelect.addEventListener('change', function(e) {
             const selectedType = e.target.value;
             
             if (selectedType === 'type-2') {
-                // TYPE 2 설정: bg2.png 매칭 + 텍스트 노출 제어용 클래스 주입
-                cardFrame.style.backgroundimage = "url('bg2.png')";
                 idCard.classList.add('type-2');
-                inputGroupRank.style.display = 'none'; // 우측 입력 필드에서도 직급 숨김
+                inputGroupRank.style.display = 'none'; 
             } else {
-                // TYPE 1 원복 설정
-                cardFrame.style.backgroundimage = "url('bg.png')";
                 idCard.classList.remove('type-2');
-                inputGroupRank.style.display = 'flex';  // 우측 입력 필드 직급 재노출
+                inputGroupRank.style.display = 'flex';  
             }
         });
 
