@@ -65,16 +65,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('bg.png'); /* 초기값 bg.png */
+            background-image: url('bg.png'); 
             background-size: 100% 100%;
             background-repeat: no-repeat;
             z-index: 3;
             pointer-events: none; 
-        }
-
-        /* TYPE 2 전용 사원증 이미지 변경 규칙 */
-        #id-card.type-2 .card-bg {
-            background-image: url('bg2.png') !important;
         }
 
         /* 2. 사진이 맴도는 구역 (가장 아래 레이어) */
@@ -137,7 +132,7 @@
             letter-spacing: 1px;
         }
 
-        /* TYPE 2 적용시 레이아웃 변형 규칙 */
+        /* TYPE 2 실시간 화면 렌더링용 강제 규칙 */
         #id-card.type-2 .info-rank {
             display: none !important;
         }
@@ -221,9 +216,9 @@
                     <span id="placeholder-text" style="color:#444; font-size:18px; letter-spacing:1px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">INSERT PORTRAIT</span>
                 </div>
                 
-                <div class="card-bg"></div>
+                <div class="card-bg" id="card-frame"></div>
 
-                <div class="info-area">
+                <div class="info-area" id="info-box">
                     <div class="info-name" id="card-name">정 우 진</div>
                     <div class="info-rank" id="card-rank">LOGISTICS TEAM LEADER</div>
                     <div class="info-sub" id="card-sub">ID: 251013-001  /  DEPT: LOGISTICS SYSTEM</div>
@@ -235,8 +230,8 @@
             <div class="input-group">
                 <label>💳 SELECT ID CARD DESIGN (디자인 선택)</label>
                 <select id="card-type-select">
-                    <option value="type-1">TYPE 1 (기본형 - bg.png)</option>
-                    <option value="type-2">TYPE 2 (심플형 - bg2.png)</option>
+                    <option value="type-1">TYPE 1 (사원 - bg.png)</option>
+                    <option value="type-2">TYPE 2 (크리처 - bg2.png)</option>
                 </select>
             </div>
 
@@ -274,6 +269,7 @@
         const scaleInput = document.getElementById('scale-input');
         const container = document.getElementById('photo-container');
         const idCard = document.getElementById('id-card');
+        const cardFrame = document.getElementById('card-frame');
         const cardTypeSelect = document.getElementById('card-type-select');
         const inputGroupRank = document.getElementById('input-group-rank');
         const placeholder = document.getElementById('placeholder-text');
@@ -284,14 +280,15 @@
         let currentX = 0, currentY = 0;
         let imgScale = 1;
 
-        // 🛠️ 대소문자 및 클래스 주입 방식 완벽 수정
+        // 화면 실시간 스위칭 처리
         cardTypeSelect.addEventListener('change', function(e) {
             const selectedType = e.target.value;
-            
             if (selectedType === 'type-2') {
+                cardFrame.style.backgroundImage = "url('bg2.png')";
                 idCard.classList.add('type-2');
                 inputGroupRank.style.display = 'none'; 
             } else {
+                cardFrame.style.backgroundImage = "url('bg.png')";
                 idCard.classList.remove('type-2');
                 inputGroupRank.style.display = 'flex';  
             }
@@ -339,13 +336,10 @@
         function dragStart(e) {
             if (!imgElement) return;
             isDragging = true;
-            
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
             startX = clientX / 0.45 - currentX;
             startY = clientY / 0.45 - currentY;
-            
             document.onmousemove = dragMove;
             document.ontouchmove = dragMove;
             document.onmouseup = dragEnd;
@@ -355,13 +349,10 @@
         function dragMove(e) {
             if (!isDragging) return;
             e.preventDefault();
-            
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
             currentX = (clientX / 0.45) - startX;
             currentY = (clientY / 0.45) - startY;
-            
             updateTransform();
         }
 
@@ -383,10 +374,28 @@
             document.getElementById('card-sub').innerText = e.target.value;
         });
 
+        // 🛠️ [긴급 초정밀 다운로드 디버깅] html2canvas 엔진 전용 강제 변환 파이프라인
         function downloadCard() {
             const card = document.getElementById('id-card');
+            const rankText = document.getElementById('card-rank');
+            const infoBox = document.getElementById('info-box');
+            const selectedType = cardTypeSelect.value;
+            
+            // 1. 캡처 전 0.45 배율 제거 (원본 해상도 복구)
             card.style.transform = "none";
             
+            // 2. html2canvas의 고질적인 가상 클래스 인식 오류 차단을 위한 하드코딩 주입
+            if (selectedType === 'type-2') {
+                cardFrame.style.backgroundImage = "url('bg2.png')";
+                rankText.style.setProperty('display', 'none', 'important'); // 직급 하드 킬
+                infoBox.style.top = "955px"; // 간격 보정 하드코딩
+            } else {
+                cardFrame.style.backgroundImage = "url('bg.png')";
+                rankText.style.setProperty('display', 'block', 'important');
+                infoBox.style.top = "935px";
+            }
+            
+            // 3. 렌더링 시동
             html2canvas(card, {
                 useCORS: true,
                 width: 820,
@@ -394,11 +403,19 @@
                 scale: 1
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'obsidian_id_card.png';
+                link.download = selectedType === 'type-2' ? 'obsidian_id_card_simple.png' : 'obsidian_id_card_basic.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
+                // 4. 다운로드 완료 후 웹 화면용 배율(0.45) 및 가상 스타일 원상 복구
                 card.style.transform = "scale(0.45)";
+                if (selectedType === 'type-2') {
+                    rankText.style.setProperty('display', 'none', 'important');
+                    infoBox.style.top = "955px";
+                } else {
+                    rankText.style.removeAttribute('style');
+                    infoBox.style.removeAttribute('style');
+                }
             });
         }
     </script>
