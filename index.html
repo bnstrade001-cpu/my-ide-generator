@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>옵시디언 코포레이션 사원증 제작소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #121212; /* 배경을 어두운 톤으로 변경 */
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 { color: #fff; margin-bottom: 10px; }
+        
+        .container {
+            display: flex;
+            flex-direction: row; /* 화면이 넓을 때 좌우 배치, 좁으면 아래 스크립트로 조절 */
+            gap: 40px;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            align-items: center;
+            max-width: 1000px;
+        }
+
+        /* [핵심] 사원증 진짜 크기는 820x1390 고정, 화면에서는 scale로 0.45배 축소해서 보여줌 */
+        .card-wrapper {
+            width: 369px;  /* 820px * 0.45 */
+            height: 625px; /* 1390px * 0.45 */
+            position: relative;
+            overflow: hidden;
+        }
+
+        #id-card {
+            position: absolute;
+            width: 820px;
+            height: 1390px;
+            background-image: url('bg.png'); /* 반드시 사원증 이미지 파일명이 bg.png 여야 합니다 */
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: scale(0.45); /* 화면에 맞게 0.45배 축소 */
+            transform-origin: top left;
+        }
+
+        /* 증명사진 위치 - 보내주신 사원증 틀의 흰색 사각형 위치에 완벽 매칭 */
+        .photo-area {
+            position: absolute;
+            top: 395px;       /* 위에서부터의 거리 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;     /* 증명사진 가로 크기 */
+            height: 435px;    /* 증명사진 세로 크기 */
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .photo-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 텍스트(이름, 직급, 사번, 부서) 배치 위치 */
+        .info-area {
+            position: absolute;
+            top: 905px;       /* 하단 라인 입력칸 시작 위치로 고정 */
+            left: 360px;      /* 왼쪽 항목 이름들을 피해 입력값들이 들어갈 위치 */
+            width: 390px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;        /* 줄 간격 공백 */
+            text-align: left;
+        }
+
+        /* 사원증에 들어갈 글자 스타일 지정 */
+        .info-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: #b0b0b0;   /* 사원증 분위기에 맞게 살짝 흐린 흰색/회색 톤 */
+            letter-spacing: 2px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 입력창 및 버튼 스타일 */
+        .input-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 320px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 14px;
+            color: #aaa;
+        }
+        input {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+        }
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #0056b3; }
+
+        /* 모바일 등 화면이 좁을 때 세로로 정렬 */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>사원증 실시간 편집기</h1>
+    <p style="color: #888; margin-top: 0; margin-bottom: 30px;">정보를 입력하면 사원증에 실시간으로 반영됩니다.</p>
+
+    <div class="container">
+        <div class="card-wrapper">
+            <div id="id-card">
+                <div class="photo-area" id="photo-preview">
+                    <span style="color:#555; font-size:24px;">사진을 업로드하세요</span>
+                </div>
+                <div class="info-area">
+                    <div class="info-text" id="card-name">홍길동</div>
+                    <div class="info-text" id="card-rank">팀장</div>
+                    <div class="info-text" id="card-num">2026-0001</div>
+                    <div class="info-text" id="card-dept">LOGISTICS</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-form">
+            <div class="input-group">
+                <label>1. 증명사진 첨부</label>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
+            
+            <div class="input-group">
+                <label>2. NAME (이름)</label>
+                <input type="text" id="name-input" placeholder="이름을 입력하세요" value="홍길동">
+            </div>
+            
+            <div class="input-group">
+                <label>3. TITLE / POSITION (직급)</label>
+                <input type="text" id="rank-input" placeholder="직급을 입력하세요" value="팀장">
+            </div>
+
+            <div class="input-group">
+                <label>4. EMPLOYEE NO. (사번)</label>
+                <input type="text" id="num-input" placeholder="사번을 입력하세요" value="2026-0001">
+            </div>
+
+            <div class="input-group">
+                <label>5. DEPARTMENT (부서)</label>
+                <input type="text" id="dept-input" placeholder="부서를 입력하세요" value="LOGISTICS">
+            </div>
+            
+            <button onclick="downloadCard()">고화질 사원증 다운로드</button>
+        </div>
+    </div>
+
+    <script>
+        // 증명사진 파일 등록 기능
+        document.getElementById('image-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('photo-preview');
+                    preview.innerHTML = `<img src="${event.target.result}" alt="증명사진">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 텍스트 실시간 연동 스크립트들
+        document.getElementById('name-input').addEventListener('input', function(e) {
+            document.getElementById('card-name').innerText = e.target.value;
+        });
+
+        document.getElementById('rank-input').addEventListener('input', function(e) {
+            document.getElementById('card-rank').innerText = e.target.value;
+        });
+
+        document.getElementById('num-input').addEventListener('input', function(e) {
+            document.getElementById('card-num').innerText = e.target.value;
+        });
+
+        document.getElementById('dept-input').addEventListener('input', function(e) {
+            document.getElementById('card-dept').innerText = e.target.value;
+        });
+
+        // 820x1390 원본 크기 그대로 깔끔하게 캡처해서 다운로드하는 기능
+        function downloadCard() {
+            const card = document.getElementById('id-card');
+            
+            // 캡처할 때는 일시적으로 축소(scale)를 해제해서 원본 크기(820x1390)로 뽑아냅니다.
+            card.style.transform = "none";
+            
+            html2canvas(card, {
+                useCORS: true,
+                width: 820,
+                height: 1390,
+                scale: 1 /* 축소 없이 100% 화질 고수 */
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'obsidian-id-card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 다운로드가 끝나면 다시 화면용으로 축소 상태 복구
+                card.style.transform = "scale(0.45)";
+            });
+        }
+    </script>
+</body>
+</html>
