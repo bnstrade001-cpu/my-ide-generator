@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBSIDIAN CORPORATION - ID Card Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #0d0d0d;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            margin: 0;
+        }
+        h1 { 
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 50px;
+            background: #141414;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+            align-items: center;
+        }
+
+        .card-wrapper {
+            width: 369px;  
+            height: 625.5px; 
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        #id-card {
+            position: absolute;
+            width: 820px;
+            height: 1390px;
+            background-image: url('bg.png'); /* 배경 이미지 파일명 확인 필수! */
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: scale(0.45);
+            transform-origin: top left;
+        }
+
+        /* 🛠️ [좌표 전면 전면 수정] 로고를 가리지 않고 은색 박스 내부에 완벽히 맞춤 */
+        .photo-area {
+            position: absolute;
+            top: 326px;       /* 은색 프레임 시작점인 326px로 상단 하강 */
+            left: 196px;      /* 왼쪽 정밀 시작점 위치 고정 */
+            width: 428px;     /* 은색 테두리 내부 순수 폭 크기 */
+            height: 532px;    /* 하단 은색 모서리에 칼같이 닿도록 높이 조절 */
+            background-color: #1f1f1f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 6px;
+            z-index: 1;
+        }
+
+        .photo-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .info-area {
+            position: absolute;
+            top: 925px;       
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .info-name {
+            font-size: 42px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .info-rank {
+            font-size: 24px;
+            color: #a0a0a0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .info-sub {
+            font-size: 16px;
+            color: #555555;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .input-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            width: 320px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        label {
+            font-size: 13px;
+            color: #888;
+            font-weight: bold;
+        }
+        input {
+            padding: 12px;
+            font-size: 15px;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+        }
+        input:focus {
+            border-color: #555;
+            outline: none;
+        }
+        button {
+            margin-top: 15px;
+            padding: 16px;
+            font-size: 16px;
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #cccccc; }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>OBSIDIAN CORPORATION</h1>
+    <div class="subtitle">IDENTITY CARD REAL-TIME EDITOR</div>
+
+    <div class="container">
+        <div class="card-wrapper">
+            <div id="id-card">
+                <div class="photo-area" id="photo-preview">
+                    <span style="color:#444; font-size:18px; letter-spacing:1px;">INSERT PORTRAIT</span>
+                </div>
+                <div class="info-area">
+                    <div class="info-name" id="card-name">정 우 진</div>
+                    <div class="info-rank" id="card-rank">LOGISTICS TEAM LEADER</div>
+                    <div class="info-sub" id="card-sub">ID: 251013-001  /  DEPT: LOGISTICS SYSTEM</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-form">
+            <div class="input-group">
+                <label>1. PORTRAIT (증명사진 업로드)</label>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
+            
+            <div class="input-group">
+                <label>2. FULL NAME (이름)</label>
+                <input type="text" id="name-input" placeholder="이름을 입력하세요" value="정 우 진">
+            </div>
+            
+            <div class="input-group">
+                <label>3. TITLE / POSITION (직급)</label>
+                <input type="text" id="rank-input" placeholder="직급을 입력하세요" value="LOGISTICS TEAM LEADER">
+            </div>
+
+            <div class="input-group">
+                <label>4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)</label>
+                <input type="text" id="sub-input" placeholder="기타 정보를 입력하세요" value="ID: 251013-001  /  DEPT: LOGISTICS SYSTEM">
+            </div>
+            
+            <button onclick="downloadCard()">GENERATE & DOWNLOAD</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('image-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('photo-preview');
+                    preview.innerHTML = `<img src="${event.target.result}" alt="증명사진">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('name-input').addEventListener('input', function(e) {
+            document.getElementById('card-name').innerText = e.target.value;
+        });
+
+        document.getElementById('rank-input').addEventListener('input', function(e) {
+            document.getElementById('card-rank').innerText = e.target.value;
+        });
+
+        document.getElementById('sub-input').addEventListener('input', function(e) {
+            document.getElementById('card-sub').innerText = e.target.value;
+        });
+
+        function downloadCard() {
+            const card = document.getElementById('id-card');
+            card.style.transform = "none";
+            
+            html2canvas(card, {
+                useCORS: true,
+                width: 820,
+                height: 1390,
+                scale: 1
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'obsidian_authorized_badge.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                card.style.transform = "scale(0.45)";
+            });
+        }
+    </script>
+</body>
+</html>
