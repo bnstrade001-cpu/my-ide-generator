@@ -58,31 +58,28 @@
             transform-origin: top left;
         }
 
-        /* 1. 사원증 투명 PNG 프레임 (★가장 위 레이어 z-index: 3) */
-        /* 이 프레임의 가운데 뚫린 구멍 뒤로 사진이 보입니다 */
+        /* 1. 사원증 투명 PNG 프레임 (가장 위 레이어) */
         .card-bg {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('bg.png'); 
+            background-image: url('bg.png'); /* 초기값 bg.png */
             background-size: 100% 100%;
             background-repeat: no-repeat;
             z-index: 3;
             pointer-events: none; 
         }
 
-        /* 2. 사진이 맴도는 구역 (★가장 아래 레이어 z-index: 1) */
-        /* 배경색을 transparent로 수정하여 거슬리는 회색/검은색 박스 라인을 원천 차단 */
-        /* 크기를 투명창보다 일부러 더 넉넉하게 잡아서 경계선 유격을 완벽히 숨깁니다 */
+        /* 2. 사진이 맴도는 구역 (가장 아래 레이어) */
         .photo-area {
             position: absolute;
-            top: 300px;       /* 위쪽으로 더 여유있게 배치 */
-            left: 170px;      /* 왼쪽으로 더 여유있게 배치 */
-            width: 480px;     /* 투명창 폭보다 넉넉하게 확장 */
-            height: 580px;    /* 투명창 높이보다 넉넉하게 확장 */
-            background-color: transparent; /* ⭐️ 배경색 삭제로 투명화 마스킹 완료 */
+            top: 300px;       
+            left: 170px;      
+            width: 480px;     
+            height: 580px;    
+            background-color: transparent; 
             overflow: hidden;
             z-index: 1;
             cursor: move;
@@ -98,7 +95,7 @@
             transition: transform 0.02s ease-out;
         }
 
-        /* 3. 텍스트 영역 (레이어 맨 위 z-index: 4) */
+        /* 3. 텍스트 영역 (레이어 맨 위) */
         .info-area {
             position: absolute;
             top: 935px;       
@@ -111,6 +108,7 @@
             gap: 10px;
             text-align: center;
             z-index: 4;
+            transition: all 0.3s ease;
         }
 
         .info-name {
@@ -134,6 +132,15 @@
             letter-spacing: 1px;
         }
 
+        /* 🛠️ TYPE 2 전용 스타일: 직급 숨김 및 텍스트 밸런스 조정 */
+        #id-card.type-2 .info-rank {
+            display: none !important;
+        }
+        #id-card.type-2 .info-area {
+            top: 955px; /* 직급이 빠진 만큼 이름과 상세 정보 위치 세부 조정 */
+            gap: 15px;
+        }
+
         /* 컨트롤러 UI */
         .input-form {
             display: flex;
@@ -151,13 +158,18 @@
             color: #888;
             font-weight: bold;
         }
-        input {
+        /* 카드 타입 선택 셀렉트 박스 */
+        select, input {
             padding: 12px;
             font-size: 15px;
             background-color: #1a1a1a;
             border: 1px solid #333;
             border-radius: 8px;
             color: #fff;
+            outline: none;
+        }
+        select:focus, input:focus {
+            border-color: #666;
         }
         .scale-slider {
             -webkit-appearance: none;
@@ -205,7 +217,7 @@
                     <span id="placeholder-text" style="color:#444; font-size:18px; letter-spacing:1px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">INSERT PORTRAIT</span>
                 </div>
                 
-                <div class="card-bg"></div>
+                <div class="card-bg" id="card-frame"></div>
 
                 <div class="info-area">
                     <div class="info-name" id="card-name">정 우 진</div>
@@ -216,6 +228,14 @@
         </div>
 
         <div class="input-form">
+            <div class="input-group">
+                <label>💳 SELECT ID CARD DESIGN (디자인 선택)</label>
+                <select id="card-type-select">
+                    <option value="type-1">TYPE 1 (기본형 - bg.png)</option>
+                    <option value="type-2">TYPE 2 (심플형 - bg2.png)</option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <label>1. PORTRAIT (증명사진 업로드)</label>
                 <input type="file" id="image-input" accept="image/*">
@@ -231,7 +251,7 @@
                 <input type="text" id="name-input" value="정 우 진">
             </div>
             
-            <div class="input-group">
+            <div class="input-group" id="input-group-rank">
                 <label>3. TITLE / POSITION (직급)</label>
                 <input type="text" id="rank-input" value="LOGISTICS TEAM LEADER">
             </div>
@@ -250,6 +270,9 @@
         const scaleInput = document.getElementById('scale-input');
         const container = document.getElementById('photo-container');
         const idCard = document.getElementById('id-card');
+        const cardFrame = document.getElementById('card-frame');
+        const cardTypeSelect = document.getElementById('card-type-select');
+        const inputGroupRank = document.getElementById('input-group-rank');
         const placeholder = document.getElementById('placeholder-text');
         
         let imgElement = null;
@@ -257,6 +280,23 @@
         let startX, startY;
         let currentX = 0, currentY = 0;
         let imgScale = 1;
+
+        // 🛠️ 카드 디자인 타입 체인지 이벤트 연동
+        cardTypeSelect.addEventListener('change', function(e) {
+            const selectedType = e.target.value;
+            
+            if (selectedType === 'type-2') {
+                // TYPE 2 설정: bg2.png 매칭 + 텍스트 노출 제어용 클래스 주입
+                cardFrame.style.backgroundimage = "url('bg2.png')";
+                idCard.classList.add('type-2');
+                inputGroupRank.style.display = 'none'; // 우측 입력 필드에서도 직급 숨김
+            } else {
+                // TYPE 1 원복 설정
+                cardFrame.style.backgroundimage = "url('bg.png')";
+                idCard.classList.remove('type-2');
+                inputGroupRank.style.display = 'flex';  // 우측 입력 필드 직급 재노출
+            }
+        });
 
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -292,7 +332,6 @@
             }
         }
 
-        // 마우스 드래그 이벤트를 사원증 전체(idCard)가 아닌 사진 영역(container)으로 제한하여 드래그 감도 최적화
         function initDragEvents() {
             container.onmousedown = dragStart;
             container.ontouchstart = dragStart;
