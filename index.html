@@ -58,7 +58,7 @@
             transform-origin: top left;
         }
 
-        /* 1. 사원증 투명 PNG 프레임 (가장 위 레이어) */
+        /* 사원증 투명 PNG 프레임 */
         .card-bg {
             position: absolute;
             top: 0;
@@ -72,7 +72,7 @@
             pointer-events: none; 
         }
 
-        /* 2. 사진이 맴도는 구역 (가장 아래 레이어) */
+        /* 사진 영역 */
         .photo-area {
             position: absolute;
             top: 300px;       
@@ -95,7 +95,7 @@
             transition: transform 0.02s ease-out;
         }
 
-        /* 3. 텍스트 영역 (레이어 맨 위) */
+        /* 텍스트 영역 */
         .info-area {
             position: absolute;
             top: 935px;       
@@ -126,13 +126,15 @@
             text-transform: uppercase;
         }
 
+        /* 🛠️ [수정] 사번 및 부서 상세 정보 기본 색상을 흰색(#ffffff)으로 변경하여 시인성 확보 */
         .info-sub {
             font-size: 15px;
-            color: #444444;
+            color: #ffffff; 
             letter-spacing: 1px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
 
-        /* TYPE 2 실시간 화면 렌더링용 강제 규칙 */
+        /* TYPE 2 실시간 화면 렌더링용 변형 규칙 */
         #id-card.type-2 .info-rank {
             display: none !important;
         }
@@ -230,7 +232,7 @@
             <div class="input-group">
                 <label>💳 SELECT ID CARD DESIGN (디자인 선택)</label>
                 <select id="card-type-select">
-                    <option value="type-1">TYPE 1 (사원 - bg.png)</option>
+                    <option value="type-1">TYPE 1 (기본형 - bg.png)</option>
                     <option value="type-2">TYPE 2 (크리처 - bg2.png)</option>
                 </select>
             </div>
@@ -256,7 +258,7 @@
             </div>
 
             <div class="input-group">
-                <label>4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)</label>
+                <label id="sub-input-label">4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)</label>
                 <input type="text" id="sub-input" value="ID: 251013-001  /  DEPT: LOGISTICS SYSTEM">
             </div>
             
@@ -272,6 +274,7 @@
         const cardFrame = document.getElementById('card-frame');
         const cardTypeSelect = document.getElementById('card-type-select');
         const inputGroupRank = document.getElementById('input-group-rank');
+        const subInputLabel = document.getElementById('sub-input-label');
         const placeholder = document.getElementById('placeholder-text');
         
         let imgElement = null;
@@ -280,17 +283,19 @@
         let currentX = 0, currentY = 0;
         let imgScale = 1;
 
-        // 화면 실시간 스위칭 처리
+        // 🛠️ TYPE 스위칭 시 입력 폼 타이틀 번호 실시간 제어 로직 추가
         cardTypeSelect.addEventListener('change', function(e) {
             const selectedType = e.target.value;
             if (selectedType === 'type-2') {
                 cardFrame.style.backgroundImage = "url('bg2.png')";
                 idCard.classList.add('type-2');
                 inputGroupRank.style.display = 'none'; 
+                subInputLabel.innerText = "3. EMPLOYEE DETAILS (사번 및 부서 상세 정보)"; // 4번에서 3번으로 변경
             } else {
                 cardFrame.style.backgroundImage = "url('bg.png')";
                 idCard.classList.remove('type-2');
                 inputGroupRank.style.display = 'flex';  
+                subInputLabel.innerText = "4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)"; // 원래대로 복귀
             }
         });
 
@@ -374,28 +379,24 @@
             document.getElementById('card-sub').innerText = e.target.value;
         });
 
-        // 🛠️ [긴급 초정밀 다운로드 디버깅] html2canvas 엔진 전용 강제 변환 파이프라인
         function downloadCard() {
             const card = document.getElementById('id-card');
             const rankText = document.getElementById('card-rank');
             const infoBox = document.getElementById('info-box');
             const selectedType = cardTypeSelect.value;
             
-            // 1. 캡처 전 0.45 배율 제거 (원본 해상도 복구)
             card.style.transform = "none";
             
-            // 2. html2canvas의 고질적인 가상 클래스 인식 오류 차단을 위한 하드코딩 주입
             if (selectedType === 'type-2') {
                 cardFrame.style.backgroundImage = "url('bg2.png')";
-                rankText.style.setProperty('display', 'none', 'important'); // 직급 하드 킬
-                infoBox.style.top = "955px"; // 간격 보정 하드코딩
+                rankText.style.setProperty('display', 'none', 'important');
+                infoBox.style.top = "955px"; 
             } else {
                 cardFrame.style.backgroundImage = "url('bg.png')";
                 rankText.style.setProperty('display', 'block', 'important');
                 infoBox.style.top = "935px";
             }
             
-            // 3. 렌더링 시동
             html2canvas(card, {
                 useCORS: true,
                 width: 820,
@@ -407,7 +408,6 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
-                // 4. 다운로드 완료 후 웹 화면용 배율(0.45) 및 가상 스타일 원상 복구
                 card.style.transform = "scale(0.45)";
                 if (selectedType === 'type-2') {
                     rankText.style.setProperty('display', 'none', 'important');
