@@ -58,7 +58,8 @@
             transform-origin: top left;
         }
 
-        /* 사원증 투명 PNG 프레임 (가장 위 레이어) */
+        /* 1. 사원증 투명 PNG 프레임 (★가장 위 레이어 z-index: 3) */
+        /* 이 프레임의 가운데 뚫린 구멍 뒤로 사진이 보입니다 */
         .card-bg {
             position: absolute;
             top: 0;
@@ -72,19 +73,20 @@
             pointer-events: none; 
         }
 
-        /* 🛠️ [정밀 수정] 회색 박스가 커지지 않도록 투명창 규격에 칼같이 매칭 */
+        /* 2. 사진이 맴도는 구역 (★가장 아래 레이어 z-index: 1) */
+        /* 배경색을 transparent로 수정하여 거슬리는 회색/검은색 박스 라인을 원천 차단 */
+        /* 크기를 투명창보다 일부러 더 넉넉하게 잡아서 경계선 유격을 완벽히 숨깁니다 */
         .photo-area {
             position: absolute;
-            top: 318px;       /* 상단 은색 선 위치 일치 */
-            left: 194px;      /* 좌측 은색 선 위치 일치 */
-            width: 432px;     /* 안쪽 가로 폭 */
-            height: 524px;    /* ⭐️ 기존 532px에서 아래쪽 회색 박스를 더 깎아 524px로 최종 정밀 축소 */
-            background-color: #000000;
+            top: 300px;       /* 위쪽으로 더 여유있게 배치 */
+            left: 170px;      /* 왼쪽으로 더 여유있게 배치 */
+            width: 480px;     /* 투명창 폭보다 넉넉하게 확장 */
+            height: 580px;    /* 투명창 높이보다 넉넉하게 확장 */
+            background-color: transparent; /* ⭐️ 배경색 삭제로 투명화 마스킹 완료 */
             overflow: hidden;
             z-index: 1;
             cursor: move;
             user-select: none;
-            border-radius: 24px; /* ⭐️ 아래쪽 깎인 프레임 라인에 맞춰 모서리 커팅 처리 */
         }
 
         .photo-area img {
@@ -96,7 +98,7 @@
             transition: transform 0.02s ease-out;
         }
 
-        /* 텍스트 영역 */
+        /* 3. 텍스트 영역 (레이어 맨 위 z-index: 4) */
         .info-area {
             position: absolute;
             top: 935px;       
@@ -290,9 +292,10 @@
             }
         }
 
+        // 마우스 드래그 이벤트를 사원증 전체(idCard)가 아닌 사진 영역(container)으로 제한하여 드래그 감도 최적화
         function initDragEvents() {
-            idCard.onmousedown = dragStart;
-            idCard.ontouchstart = dragStart;
+            container.onmousedown = dragStart;
+            container.ontouchstart = dragStart;
         }
 
         function dragStart(e) {
