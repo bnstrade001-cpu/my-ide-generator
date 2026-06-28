@@ -58,7 +58,7 @@
             transform-origin: top left;
         }
 
-        /* 사원증 투명 PNG 프레임 */
+        /* 사원증 투명 PNG 프레임 (가장 위 레이어) */
         .card-bg {
             position: absolute;
             top: 0;
@@ -72,13 +72,13 @@
             pointer-events: none; 
         }
 
-        /* 사진 영역 */
+        /* 🛠️ [초정밀 수정] 보내주신 프레임 크기 및 비율에 맞춰 사진 구역 완전히 재조정 */
         .photo-area {
             position: absolute;
-            top: 300px;       
-            left: 170px;      
-            width: 480px;     
-            height: 580px;    
+            top: 418px;        /* 위쪽 로고 및 여백 높이 반영 마진 */
+            left: 172px;       /* 좌측 중앙 정렬 마진 */
+            width: 476px;      /* 제공해주신 프레임 박스 내부 정가로폭 */
+            height: 520px;     /* 제공해주신 프레임 박스 내부 정세로폭 */
             background-color: transparent; 
             overflow: hidden;
             z-index: 1;
@@ -98,14 +98,14 @@
         /* 텍스트 영역 */
         .info-area {
             position: absolute;
-            top: 935px;       
+            top: 980px;       /* 사진 영역 축소에 맞춰 텍스트 상단 마진 재배치 */
             left: 50%;
             transform: translateX(-50%);
             width: 700px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-align: center;
             z-index: 4;
             transition: all 0.2s ease;
@@ -126,7 +126,7 @@
             text-transform: uppercase;
         }
 
-        /* 🛠️ [수정] 사번 및 부서 상세 정보 기본 색상을 흰색(#ffffff)으로 변경하여 시인성 확보 */
+        /* 사번 및 부서 상세 정보 색상 흰색(#ffffff) 유지 */
         .info-sub {
             font-size: 15px;
             color: #ffffff; 
@@ -139,7 +139,7 @@
             display: none !important;
         }
         #id-card.type-2 .info-area {
-            top: 955px; 
+            top: 1005px; 
             gap: 15px;
         }
 
@@ -232,8 +232,8 @@
             <div class="input-group">
                 <label>💳 SELECT ID CARD DESIGN (디자인 선택)</label>
                 <select id="card-type-select">
-                    <option value="type-1">TYPE 1 (기본형 - bg.png)</option>
-                    <option value="type-2">TYPE 2 (크리처 - bg2.png)</option>
+                    <option value="type-1">TYPE 1 (사원)</option>
+                    <option value="type-2">TYPE 2 (크리처)</option>
                 </select>
             </div>
 
@@ -283,19 +283,19 @@
         let currentX = 0, currentY = 0;
         let imgScale = 1;
 
-        // 🛠️ TYPE 스위칭 시 입력 폼 타이틀 번호 실시간 제어 로직 추가
+        // TYPE 스위칭 시 라벨 번호 유동적 변경 로직 (3번 복구 기능 포함)
         cardTypeSelect.addEventListener('change', function(e) {
             const selectedType = e.target.value;
             if (selectedType === 'type-2') {
                 cardFrame.style.backgroundImage = "url('bg2.png')";
                 idCard.classList.add('type-2');
                 inputGroupRank.style.display = 'none'; 
-                subInputLabel.innerText = "3. EMPLOYEE DETAILS (사번 및 부서 상세 정보)"; // 4번에서 3번으로 변경
+                subInputLabel.innerText = "3. EMPLOYEE DETAILS (사번 및 부서 상세 정보)";
             } else {
                 cardFrame.style.backgroundImage = "url('bg.png')";
                 idCard.classList.remove('type-2');
                 inputGroupRank.style.display = 'flex';  
-                subInputLabel.innerText = "4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)"; // 원래대로 복귀
+                subInputLabel.innerText = "4. EMPLOYEE DETAILS (사번 및 부서 상세 정보)";
             }
         });
 
@@ -390,11 +390,11 @@
             if (selectedType === 'type-2') {
                 cardFrame.style.backgroundImage = "url('bg2.png')";
                 rankText.style.setProperty('display', 'none', 'important');
-                infoBox.style.top = "955px"; 
+                infoBox.style.top = "1005px"; 
             } else {
                 cardFrame.style.backgroundImage = "url('bg.png')";
                 rankText.style.setProperty('display', 'block', 'important');
-                infoBox.style.top = "935px";
+                infoBox.style.top = "980px";
             }
             
             html2canvas(card, {
@@ -411,7 +411,7 @@
                 card.style.transform = "scale(0.45)";
                 if (selectedType === 'type-2') {
                     rankText.style.setProperty('display', 'none', 'important');
-                    infoBox.style.top = "955px";
+                    infoBox.style.top = "1005px";
                 } else {
                     rankText.style.removeAttribute('style');
                     infoBox.style.removeAttribute('style');
